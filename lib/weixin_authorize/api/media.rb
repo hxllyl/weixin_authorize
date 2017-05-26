@@ -13,6 +13,27 @@ module WeixinAuthorize
         http_post(upload_media_url, {media: file}, {type: media_type}, "file")
       end
 
+      # 新增其他类型永久素材
+      # http请求方式: POST，需使用https
+      # https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=ACCESS_TOKEN&type=TYPE
+      #  description 示例   ，media_type='video'时  需传入
+      # {
+      #   "title":VIDEO_TITLE,
+      #   "introduction":INTRODUCTION
+      # }
+      # 返回说明
+      # {
+      #   "media_id":MEDIA_ID,
+      #   "url":URL
+      # }
+      def add_material(media, media_type, description = nil)
+        file = process_file(media)
+        upload_material_url = "#{material_base_url}/add_material"
+        params = {media: file}
+        params.merge!({description: description })    if  description.present?
+        http_post(upload_material_url, params, {type: media_type}, "file")
+      end
+
       # 目前仅仅把下载链接返回给第三方开发者，由第三方开发者处理下载
       def download_media_url(media_id)
         download_media_url = WeixinAuthorize.endpoint_url("file", "#{media_base_url}/get")
@@ -47,6 +68,26 @@ module WeixinAuthorize
       def upload_mass_news(news=[])
         upload_news_url = "#{media_base_url}/uploadnews"
         http_post(upload_news_url, {articles: news})
+      end
+
+      # http请求方式: POST，https协议
+      # https://api.weixin.qq.com/cgi-bin/material/add_news?access_token=ACCESS_TOKEN
+      #  新增永久图文素材
+      def add_news(news=[])
+        add_news_url = "#{material_base_url}/add_news"
+        http_post(add_news_url, {articles: news})
+      end
+
+
+      # http请求方式: POST,https协议
+      # https://api.weixin.qq.com/cgi-bin/material/get_material?access_token=ACCESS_TOKEN
+      # 调用示例
+      # {
+      #   "media_id":MEDIA_ID
+      # }
+      def get_material(media_id)
+        get_material_url = "#{material_base_url}/get_material"
+        http_post(get_material_url, {media_id: media_id})
       end
 
       # media_id: 需通过基础支持中的上传下载多媒体文件来得到
@@ -85,6 +126,10 @@ module WeixinAuthorize
 
         def media_base_url
           "/media"
+        end
+
+        def material_base_url
+          "/material"
         end
 
         def process_file(media)
